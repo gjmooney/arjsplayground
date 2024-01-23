@@ -2,10 +2,10 @@
 
 AFRAME.registerComponent("gesture-detector", {
   schema: {
-    element: { default: "" }
+    element: { default: "" },
   },
 
-  init: function() {
+  init: function () {
     this.targetElement =
       this.data.element && document.querySelector(this.data.element);
 
@@ -14,43 +14,40 @@ AFRAME.registerComponent("gesture-detector", {
     }
 
     this.internalState = {
-      previousState: null
+      previousState: null,
     };
 
     this.emitGestureEvent = this.emitGestureEvent.bind(this);
 
-    this.targetElement.addEventListener("touchstart", this.emitGestureEvent);
+    this.targetElement.addEventListener("mousedown", this.emitGestureEvent);
 
-    this.targetElement.addEventListener("touchend", this.emitGestureEvent);
+    this.targetElement.addEventListener("mouseup", this.emitGestureEvent);
 
-    this.targetElement.addEventListener("touchmove", this.emitGestureEvent);
+    // this.targetElement.addEventListener("mousemove", this.emitGestureEvent);
   },
 
-  remove: function() {
-    this.targetElement.removeEventListener("touchstart", this.emitGestureEvent);
+  remove: function () {
+    this.targetElement.removeEventListener("mousedown", this.emitGestureEvent);
 
-    this.targetElement.removeEventListener("touchend", this.emitGestureEvent);
+    this.targetElement.removeEventListener("mouseup", this.emitGestureEvent);
 
-    this.targetElement.removeEventListener("touchmove", this.emitGestureEvent);
+    // this.targetElement.removeEventListener("mousemove", this.emitGestureEvent);
   },
 
   emitGestureEvent(event) {
+    console.log("Emit getsure event", event);
     const currentState = this.getTouchState(event);
 
     const previousState = this.internalState.previousState;
 
-    const gestureContinues =
-      previousState &&
-      currentState &&
-      currentState.touchCount == previousState.touchCount;
+    const gestureContinues = previousState && currentState;
 
     const gestureEnded = previousState && !gestureContinues;
 
     const gestureStarted = currentState && !gestureContinues;
 
     if (gestureEnded) {
-      const eventName =
-        this.getEventPrefix(previousState.touchCount) + "fingerend";
+      const eventName = "onefingerend";
 
       this.el.emit(eventName, previousState);
 
@@ -64,8 +61,7 @@ AFRAME.registerComponent("gesture-detector", {
 
       currentState.startSpread = currentState.spread;
 
-      const eventName =
-        this.getEventPrefix(currentState.touchCount) + "fingerstart";
+      const eventName = "onefingerstart";
 
       this.el.emit(eventName, currentState);
 
@@ -73,12 +69,13 @@ AFRAME.registerComponent("gesture-detector", {
     }
 
     if (gestureContinues) {
+      console.log("gesture continues");
       const eventDetail = {
         positionChange: {
           x: currentState.position.x - previousState.position.x,
 
-          y: currentState.position.y - previousState.position.y
-        }
+          y: currentState.position.y - previousState.position.y,
+        },
       };
 
       if (currentState.spread) {
@@ -93,39 +90,42 @@ AFRAME.registerComponent("gesture-detector", {
 
       Object.assign(eventDetail, previousState);
 
-      const eventName =
-        this.getEventPrefix(currentState.touchCount) + "fingermove";
+      const eventName = "onefingermove";
 
       this.el.emit(eventName, eventDetail);
     }
   },
 
-  getTouchState: function(event) {
-    if (event.touches.length === 0) {
-      return null;
-    }
+  getTouchState: function (event) {
+    // if (event.touches.length === 0) {
+    //   return null;
+    // }
 
     // Convert event.touches to an array so we can use reduce
 
-    const touchList = [];
+    // const touchList = [];
 
-    for (let i = 0; i < event.touches.length; i++) {
-      touchList.push(event.touches[i]);
-    }
+    // for (let i = 0; i < event.touches.length; i++) {
+    //   touchList.push(event.touches[i]);
+    // }
 
-    const touchState = {
-      touchCount: touchList.length
-    };
+    const touchState = {};
+    // const touchState = {
+    //   touchCount: touchList.length,
+    // };
 
     // Calculate center of all current touches
 
-    const centerPositionRawX =
-      touchList.reduce((sum, touch) => sum + touch.clientX, 0) /
-      touchList.length;
+    // const centerPositionRawX =
+    //   touchList.reduce((sum, touch) => sum + touch.clientX, 0) /
+    //   touchList.length;
 
-    const centerPositionRawY =
-      touchList.reduce((sum, touch) => sum + touch.clientY, 0) /
-      touchList.length;
+    // const centerPositionRawY =
+    //   touchList.reduce((sum, touch) => sum + touch.clientY, 0) /
+    //   touchList.length;
+
+    const centerPositionRawX = event.clientX;
+    const centerPositionRawY = event.clientY;
 
     touchState.positionRaw = { x: centerPositionRawX, y: centerPositionRawY };
 
@@ -135,25 +135,25 @@ AFRAME.registerComponent("gesture-detector", {
 
     touchState.position = {
       x: centerPositionRawX * screenScale,
-      y: centerPositionRawY * screenScale
+      y: centerPositionRawY * screenScale,
     };
 
     // Calculate average spread of touches from the center point
 
-    if (touchList.length >= 2) {
-      const spread =
-        touchList.reduce((sum, touch) => {
-          return (
-            sum +
-            Math.sqrt(
-              Math.pow(centerPositionRawX - touch.clientX, 2) +
-                Math.pow(centerPositionRawY - touch.clientY, 2)
-            )
-          );
-        }, 0) / touchList.length;
+    // if (touchList.length >= 2) {
+    //   const spread =
+    //     touchList.reduce((sum, touch) => {
+    //       return (
+    //         sum +
+    //         Math.sqrt(
+    //           Math.pow(centerPositionRawX - touch.clientX, 2) +
+    //             Math.pow(centerPositionRawY - touch.clientY, 2)
+    //         )
+    //       );
+    //     }, 0) / touchList.length;
 
-      touchState.spread = spread * screenScale;
-    }
+    //   touchState.spread = spread * screenScale;
+    // }
 
     return touchState;
   },
@@ -162,5 +162,5 @@ AFRAME.registerComponent("gesture-detector", {
     const numberNames = ["one", "two", "three", "many"];
 
     return numberNames[Math.min(touchCount, 4) - 1];
-  }
+  },
 });
