@@ -35,7 +35,6 @@ AFRAME.registerComponent("gesture-detector", {
   },
 
   emitGestureEvent(event) {
-    console.log("Emit getsure event", event);
     const currentState = this.getTouchState(event);
 
     const previousState = this.internalState.previousState;
@@ -69,7 +68,6 @@ AFRAME.registerComponent("gesture-detector", {
     }
 
     if (gestureContinues) {
-      console.log("gesture continues");
       const eventDetail = {
         positionChange: {
           x: currentState.position.x - previousState.position.x,

@@ -3,7 +3,7 @@
 AFRAME.registerComponent("gesture-handler", {
   schema: {
     enabled: { default: true },
-    rotationFactor: { default: 0.5 },
+    rotationFactor: { default: 0.05 },
     minScale: { default: 0.3 },
     maxScale: { default: 8 },
   },
@@ -38,12 +38,12 @@ AFRAME.registerComponent("gesture-handler", {
       this.el.sceneEl.addEventListener("mousedown", this.mouseDown);
       this.el.sceneEl.addEventListener("mousemove", this.mouseMove);
       this.el.sceneEl.addEventListener("mouseup", this.mouseUp);
-      // this.el.sceneEl.addEventListener("wheel", this.handleScale);
+      this.el.sceneEl.addEventListener("wheel", this.handleScale);
     } else {
       this.el.sceneEl.removeEventListener("mousedown", this.mouseDown);
       this.el.sceneEl.removeEventListener("mousemove", this.mouseMove);
       this.el.sceneEl.removeEventListener("mouseup", this.mouseUp);
-      // this.el.sceneEl.removeEventListener("wheel", this.handleScale);
+      this.el.sceneEl.removeEventListener("wheel", this.handleScale);
     }
   },
 
@@ -51,7 +51,7 @@ AFRAME.registerComponent("gesture-handler", {
     this.el.sceneEl.removeEventListener("mousedown", this.mouseDown);
     this.el.sceneEl.removeEventListener("mousemove", this.mouseMove);
     this.el.sceneEl.removeEventListener("mouseup", this.mouseUp);
-    // this.el.sceneEl.removeEventListener("wheel", this.handleScale);
+    this.el.sceneEl.removeEventListener("wheel", this.handleScale);
   },
 
   mouseDown: function (event) {
@@ -66,6 +66,9 @@ AFRAME.registerComponent("gesture-handler", {
         (event.clientX - this.x) * this.data.rotationFactor;
       this.el.object3D.rotation.x +=
         (event.clientY - this.y) * this.data.rotationFactor;
+
+      this.x = event.clientX;
+      this.y = event.clientY;
     }
   },
 
@@ -88,9 +91,10 @@ AFRAME.registerComponent("gesture-handler", {
   },
 
   handleScale: function (event) {
-    console.log("event", event);
+    console.log("event", event.wheelDeltaY);
     if (this.isVisible) {
-      this.scaleFactor *= event.wheelDeltaY / 100;
+      this.scaleFactor -=
+        event.deltaY * (2 / (window.innerWidth + window.innerHeight));
 
       // 1 + event.detail.spreadChange / event.detail.startSpread;
       console.log("scaleFactor1", this.scaleFactor);
